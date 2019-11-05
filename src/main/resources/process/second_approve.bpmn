@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:tns="http://www.activiti.org/testm1567610369071" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" expressionLanguage="http://www.w3.org/1999/XPath" id="m1567610369071" name="" targetNamespace="http://www.activiti.org/testm1567610369071" typeLanguage="http://www.w3.org/2001/XMLSchema">
+  <process id="second_approve" isClosed="false" isExecutable="true" name="二级审批流程" processType="None">
+    <startEvent id="StartEvent" name="StartEvent"/>
+    <userTask activiti:exclusive="true" id="submit_form" name="填写审批信息">
+      <extensionElements>
+        <activiti:formProperty id="message" name="申请信息" required="true" type="string"/>
+        <activiti:formProperty id="name" name="申请人姓名" required="true" type="string"/>
+        <activiti:formProperty datePattern="yyyy-MM-dd" id="submitTime" name="提交时间" required="true" type="date"/>
+        <activiti:formProperty id="submitType" name="确认申请" required="true" type="string"/>
+        <activiti:formProperty/>
+        <activiti:formProperty/>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway gatewayDirection="Unspecified" id="decideSubmit" name="提交OR取消"/>
+    <sequenceFlow id="_5" sourceRef="StartEvent" targetRef="submit_form"/>
+    <sequenceFlow id="_6" sourceRef="submit_form" targetRef="decideSubmit"/>
+    <userTask activiti:exclusive="true" id="tl_approve" name="主管审批">
+      <extensionElements>
+        <activiti:formProperty id="tlApprove" name="主管审批结果" required="true" type="string"/>
+        <activiti:formProperty id="tlMessage" name="主管备注" required="true" type="string"/>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway gatewayDirection="Unspecified" id="decideHRApprove" name="ExclusiveGateway"/>
+    <endEvent id="EndEvent" name="结束"/>
+    <sequenceFlow id="_10" sourceRef="decideHRApprove" targetRef="EndEvent">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_12" sourceRef="decideSubmit" targetRef="tl_approve">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+    <endEvent id="EndEventCancel" name="EndEvent"/>
+    <sequenceFlow id="_14" sourceRef="decideSubmit" targetRef="EndEventCancel">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_15" sourceRef="decideHRApprove" targetRef="submit_form">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+    <userTask activiti:exclusive="true" id="hr_approve" name="人事审批">
+      <extensionElements>
+        <activiti:formProperty id="hrApprove" name="人事审批结果" readable="true" required="true" type="string"/>
+        <activiti:formProperty id="hrMessage" name="人事审批备注" readable="true" required="true" type="string"/>
+      </extensionElements>
+    </userTask>
+    <exclusiveGateway gatewayDirection="Unspecified" id="decideTLApprove" name="主管审批校验"/>
+    <sequenceFlow id="_19" sourceRef="tl_approve" targetRef="decideTLApprove"/>
+    <sequenceFlow id="_20" sourceRef="decideTLApprove" targetRef="hr_approve">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="_21" sourceRef="hr_approve" targetRef="decideHRApprove"/>
+    <sequenceFlow id="_22" sourceRef="decideTLApprove" targetRef="submit_form">
+      <conditionExpression xsi:type="tFormalExpression">
+        <![CDATA[
+        ]]>
+      </conditionExpression>
+    </sequenceFlow>
+  </process>
+  <bpmndi:BPMNDiagram documentation="background=#FFFFFF;count=1;horizontalcount=1;orientation=0;width=842.4;height=1195.2;imageableWidth=832.4;imageableHeight=1185.2;imageableX=5.0;imageableY=5.0" id="Diagram-_1" name="New Diagram">
+    <bpmndi:BPMNPlane bpmnElement="second_approve">
+      <bpmndi:BPMNShape bpmnElement="StartEvent" id="Shape-StartEvent">
+        <dc:Bounds height="32.0" width="32.0" x="165.0" y="140.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="submit_form" id="Shape-submit_form">
+        <dc:Bounds height="55.0" width="85.0" x="265.0" y="135.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="decideSubmit" id="Shape-decideSubmit" isMarkerVisible="false">
+        <dc:Bounds height="32.0" width="32.0" x="440.0" y="140.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="tl_approve" id="Shape-tl_approve">
+        <dc:Bounds height="55.0" width="85.0" x="615.0" y="135.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="decideHRApprove" id="Shape-decideHRApprove" isMarkerVisible="false">
+        <dc:Bounds height="32.0" width="32.0" x="1140.0" y="140.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEvent" id="Shape-EndEvent">
+        <dc:Bounds height="32.0" width="32.0" x="1270.0" y="135.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="EndEventCancel" id="Shape-EndEventCancel">
+        <dc:Bounds height="32.0" width="32.0" x="580.0" y="205.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="hr_approve" id="Shape-hr_approve">
+        <dc:Bounds height="55.0" width="85.0" x="960.0" y="130.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="55.0" width="85.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape bpmnElement="decideTLApprove" id="Shape-decideTLApprove" isMarkerVisible="false">
+        <dc:Bounds height="32.0" width="32.0" x="855.0" y="110.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="32.0" width="32.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge bpmnElement="_12" id="BPMNEdge__12" sourceElement="decideSubmit" targetElement="tl_approve">
+        <di:waypoint x="472.0" y="156.0"/>
+        <di:waypoint x="615.0" y="162.5"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_15" id="BPMNEdge__15" sourceElement="decideHRApprove" targetElement="submit_form">
+        <di:waypoint x="1156.0" y="140.0"/>
+        <di:waypoint x="755.0" y="25.0"/>
+        <di:waypoint x="307.5" y="135.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_14" id="BPMNEdge__14" sourceElement="decideSubmit" targetElement="EndEventCancel">
+        <di:waypoint x="472.0" y="156.0"/>
+        <di:waypoint x="580.0" y="221.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_19" id="BPMNEdge__19" sourceElement="tl_approve" targetElement="decideTLApprove">
+        <di:waypoint x="700.0" y="162.5"/>
+        <di:waypoint x="855.0" y="126.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_5" id="BPMNEdge__5" sourceElement="StartEvent" targetElement="submit_form">
+        <di:waypoint x="197.0" y="156.0"/>
+        <di:waypoint x="265.0" y="162.5"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_6" id="BPMNEdge__6" sourceElement="submit_form" targetElement="decideSubmit">
+        <di:waypoint x="350.0" y="162.5"/>
+        <di:waypoint x="440.0" y="156.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_20" id="BPMNEdge__20" sourceElement="decideTLApprove" targetElement="hr_approve">
+        <di:waypoint x="887.0" y="126.0"/>
+        <di:waypoint x="960.0" y="157.5"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_22" id="BPMNEdge__22" sourceElement="decideTLApprove" targetElement="submit_form">
+        <di:waypoint x="871.0" y="142.0"/>
+        <di:waypoint x="580.0" y="310.0"/>
+        <di:waypoint x="307.5" y="190.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_10" id="BPMNEdge__10" sourceElement="decideHRApprove" targetElement="EndEvent">
+        <di:waypoint x="1172.0" y="156.0"/>
+        <di:waypoint x="1270.0" y="151.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="_21" id="BPMNEdge__21" sourceElement="hr_approve" targetElement="decideHRApprove">
+        <di:waypoint x="1045.0" y="157.5"/>
+        <di:waypoint x="1140.0" y="156.0"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds height="0.0" width="0.0" x="0.0" y="0.0"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
