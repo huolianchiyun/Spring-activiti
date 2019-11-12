@@ -46,6 +46,28 @@ LOCK TABLES `leaveapply` WRITE;
 /*!40000 ALTER TABLE `leaveapply` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
+--
+-- Table structure for table `permission`
+--
+
+DROP TABLE IF EXISTS `businessTripApply`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `businessTripApply` (
+                              `id` int(11) NOT NULL AUTO_INCREMENT,
+                              `process_instance_id` varchar(45) DEFAULT NULL,
+                              `user_id` varchar(20) DEFAULT NULL,
+                              `start_time` varchar(45) DEFAULT NULL,
+                              `end_time` varchar(45) DEFAULT NULL,
+                              `reason` varchar(400) DEFAULT NULL,
+                              `apply_time` varchar(100) DEFAULT NULL,
+                              `reality_start_time` varchar(45) DEFAULT NULL,
+                              `reality_end_time` varchar(45) DEFAULT NULL,
+                              PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+
+
 --
 -- Table structure for table `permission`
 --

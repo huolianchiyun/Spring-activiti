@@ -10,6 +10,9 @@
         <activiti:formProperty id="submitType" name="确认申请" required="true" type="string"/>
         <activiti:formProperty/>
         <activiti:formProperty/>
+        <activiti:formProperty/>
+        <activiti:formProperty/>
+        <activiti:formProperty/>
       </extensionElements>
     </userTask>
     <exclusiveGateway gatewayDirection="Unspecified" id="decideSubmit" name="提交OR取消"/>

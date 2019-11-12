@@ -23,7 +23,7 @@ import io.swagger.annotations.Api;
 
 @Api(value = "系统管理接口")
 @Controller
-public class SystemController {
+public class SystemManageController {
 	@Autowired
 	SystemService systemservice;
 	

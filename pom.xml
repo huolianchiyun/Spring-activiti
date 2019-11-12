@@ -74,7 +74,13 @@
 		    <artifactId>activiti-spring-boot-starter-basic</artifactId>
 		    <version>5.22.0</version>
 		</dependency>
-		
+	  <!-- spring-boot-devtools热启动依赖包 start-->
+	  <dependency>
+		  <groupId>org.springframework.boot</groupId>
+		  <artifactId>spring-boot-devtools</artifactId>
+		  <optional>true</optional>
+		  <scope>true</scope>
+	  </dependency>
 		</dependencies>
 		<build>
 			<finalName>Spring-boot-activiti</finalName>
