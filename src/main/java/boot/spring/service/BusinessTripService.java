@@ -3,6 +3,7 @@ package boot.spring.service;
 import boot.spring.mapper.BusinessTripApplyMapper;
 import boot.spring.pagemodel.BusinessTripTask;
 import boot.spring.po.BusinessTripApply;
+import boot.spring.po.LeaveApply;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.runtime.ProcessInstance;
@@ -20,6 +21,8 @@ public interface BusinessTripService extends ProcessCommon {
     BusinessTripApply getBusinessTripApply(int id);
 
     void updateBusinessTrip(BusinessTripApply a);
+
+    void updateComplete(String taskId, BusinessTripApply leave, String reapply);
 
     @Override
     default List<BusinessTripTask> getPageTasksByGroup(String group, int firstRow, int rowCount) {

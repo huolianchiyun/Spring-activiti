@@ -12,12 +12,14 @@
         <activiti:formProperty id="tlMessage" name="主管备注" required="true" type="string"/>
       </extensionElements>
     </userTask>
+
     <sequenceFlow id="flow3" sourceRef="decideSubmit" targetRef="tl_approve">
       <conditionExpression xsi:type="tFormalExpression">
         <![CDATA[${submit=='true'}]]>
       </conditionExpression>
     </sequenceFlow>
     <exclusiveGateway gatewayDirection="Unspecified" id="decideTLApprove" name="主管审批校验"/>
+
     <sequenceFlow id="flow4" sourceRef="tl_approve" targetRef="decideTLApprove"/>
     <userTask activiti:exclusive="true" id="hr_approve" name="人事审批" activiti:candidateGroups="人事">
       <extensionElements>

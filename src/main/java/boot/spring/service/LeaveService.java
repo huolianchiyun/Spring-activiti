@@ -20,13 +20,9 @@ public interface LeaveService extends ProcessCommon {
 
     int getAllXJTask(String userId);
 
-    List<LeaveApply> getPageUpdateApplyTask(String userId, int firstRow, int rowcount);
-
-    int getAllUpdateApplyTask(String userId);
-
     void completeReportBack(String taskId, String realStartTime, String realEndTime);
 
-    void updateComplete(String taskId, LeaveApply leave, String reappply);
+    void updateComplete(String taskId, LeaveApply leave, String reapply);
 
     List<String> getHighLightedFlows(ProcessDefinitionEntity deployedProcessDefinition, List<HistoricActivityInstance> historicActivityInstances);
 

@@ -3,12 +3,12 @@ package boot.spring.controller;
 import boot.spring.common.SpringIOCUtil;
 import boot.spring.pagemodel.Process;
 import boot.spring.pagemodel.*;
+import boot.spring.po.Base;
 import boot.spring.service.BusinessTripService;
+import static boot.spring.service.ProcessCommon.ProcessServiceMap;
+
 import boot.spring.service.ProcessCommon;
 import boot.spring.service.SystemService;
-import boot.spring.service.impl.BusinessTripServiceImpl;
-import boot.spring.service.impl.LeaveServiceImpl;
-import boot.spring.service.impl.PurchaseServiceImpl;
 import io.swagger.annotations.Api;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricActivityInstance;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,11 +36,6 @@ import java.util.Map;
 @Api(value = "请假流程接口")
 @Controller
 public class ProcessCommonController {
-	private final static Map<String,Class> servicesMap = new HashMap(){{
-		put("leave", LeaveServiceImpl.class);
-		put("purchase", PurchaseServiceImpl.class);
-		put("businessTrip", BusinessTripServiceImpl.class);
-	}};
 
 	//JpaProcessEngineAutoConfiguration->AbstractProcessEngineAutoConfiguration
 	@Autowired
@@ -205,7 +199,8 @@ public class ProcessCommonController {
 
 	@RequestMapping(value = "/getfinishprocess", method = RequestMethod.POST)
 	@ResponseBody
-	public DataGrid<HistoryProcess> getHistory(HttpSession session, @RequestParam("type")String type, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+	public DataGrid<HistoryProcess> getHistory(HttpSession session, @RequestParam("type")String type, @RequestParam("current") int current,
+											   @RequestParam("rowCount") int rowCount) {
 		String userid = (String) session.getAttribute("username");
 		HistoricProcessInstanceQuery process = histiryservice.createHistoricProcessInstanceQuery()
 				.processDefinitionKey(type).startedBy(userid).finished();
@@ -224,15 +219,15 @@ public class ProcessCommonController {
 
 	@RequestMapping(value = "/dealtask", method = RequestMethod.POST)
 	@ResponseBody
-	public Object taskdeal(@RequestParam("taskid") String taskid, @RequestParam("type") String type, HttpServletResponse response) {
+	public Base taskdeal(@RequestParam("taskid") String taskid, @RequestParam("type") String type, HttpServletResponse response) {
 		Task task = taskservice.createTaskQuery().taskId(taskid).singleResult();
 		ProcessInstance process = runservice.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
-		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(servicesMap.get(type));
+		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(ProcessServiceMap.get(type));
 		return processCommon.getSelfById(new Integer(process.getBusinessKey()));
 	}
 
 	private void dealHistoryProcessByType(List<HistoricProcessInstance> info, List<HistoryProcess> list, String type) {
-		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(servicesMap.get(type));
+		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(ProcessServiceMap.get(type));
 		for (HistoricProcessInstance history : info) {
 			HistoryProcess his = new HistoryProcess();
 			String bussinesskey = history.getBusinessKey();

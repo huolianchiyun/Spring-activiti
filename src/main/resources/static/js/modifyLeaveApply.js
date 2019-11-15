@@ -7,10 +7,10 @@ $(document).ready(function () {
         navigation: 2,
         columnSelection: false,
         ajax: true,
-        url: "updatetasklist",
+        url: "/leave/updatetasklist",
         formatters: {
             "taskcreatetime": function (column, row) {
-                return getLocalTime(row.taskcreatetime);
+                return row.taskcreatetime;
             },
             "commands": function (column, row) {
                 return "<button class=\"btn btn-xs btn-default ajax-link command-run1\" data-row-id=\"" + row.taskid + "\">处理</button>";
@@ -27,11 +27,11 @@ $(document).ready(function () {
                 $("#startime").val(obj.start_time);
                 $("#endtime").val(obj.end_time);
                 $("#applytime").val(obj.apply_time);
-                $("form").attr("action", "task/updatecomplete/" + taskid);
+                $("form").attr("action", "update/leave/task/" + taskid);
             });
             $("#dept").show();
             $("#btn").click(function () {
-                $.post("task/updatecomplete/" + taskid, $("form").serialize(), function (a) {
+                $.post("update/leave/task/" + taskid, $("form").serialize(), function (a) {
                     alert("处理成功");
                     LoadAjaxContent("modifyapply");
                 });
@@ -40,6 +40,3 @@ $(document).ready(function () {
     });
 });
 
-function getLocalTime(nS) {
-    return new Date(parseInt(nS)).toLocaleString().replace(/:\d{1,2}$/, ' ');
-}

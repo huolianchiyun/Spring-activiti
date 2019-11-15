@@ -20,10 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @Transactional(propagation = Propagation.REQUIRED, isolation = Isolation.DEFAULT, timeout = 50)
 @Service
@@ -61,6 +59,25 @@ public class BusinessTripServiceImpl implements BusinessTripService {
 
     public void updateBusinessTrip(BusinessTripApply a) {
         businessTripApplyMapper.updateByPrimaryKeySelective(a);
+    }
+
+    @Override
+    public void updateComplete(String taskId, BusinessTripApply businessTripApply, String reapply) {
+        Task task = taskservice.createTaskQuery().taskId(taskId).singleResult();
+        String instanceid = task.getProcessInstanceId();
+        ProcessInstance ins = runtimeservice.createProcessInstanceQuery().processInstanceId(instanceid).singleResult();
+        String businesskey = ins.getBusinessKey();
+        BusinessTripApply a = businessTripApplyMapper.getBusinessTripApply(Integer.parseInt(businesskey));
+        a.setStart_time(businessTripApply.getStart_time());
+        a.setEnd_time(businessTripApply.getEnd_time());
+        a.setReason(businessTripApply.getReason());
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("submit", reapply);
+        if (reapply.equals("true")) {
+            businessTripApplyMapper.updateByPrimaryKeySelective(a);
+            taskservice.complete(taskId, variables);
+        } else
+            taskservice.complete(taskId, variables);
     }
 
     @Override

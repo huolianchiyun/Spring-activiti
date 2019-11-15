@@ -14,6 +14,7 @@ import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+
 import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,22 +26,21 @@ import java.util.Map;
 public class BusinessTripController {
     //JpaProcessEngineAutoConfiguration->AbstractProcessEngineAutoConfiguration
     @Autowired
-    RepositoryService rep;
+    private RepositoryService rep;
     @Autowired
-    RuntimeService runservice;
+    private RuntimeService runservice;
     @Autowired
-    FormService formservice;
+    private FormService formservice;
     @Autowired
-    IdentityService identityservice;
+    private IdentityService identityservice;
     @Autowired
-    TaskService taskservice;
+    private TaskService taskservice;
     @Autowired
-    HistoryService histiryservice;
+    private HistoryService histiryservice;
     @Autowired
-    SystemService systemservice;
+    private SystemService systemservice;
     @Autowired
-    BusinessTripService businessTripService;
-
+    private BusinessTripService businessTripService;
 
     @RequestMapping(value = "/businessTrip", method = RequestMethod.GET)
     public String businessTrip() {
@@ -99,7 +99,7 @@ public class BusinessTripController {
     }
 
     @ApiOperation("获取部门领导审批代办列表")
-    @RequestMapping(value = "/businessTrip/depttasklist", produces = {"application/json;charset=UTF-8" }, method = RequestMethod.POST)
+    @RequestMapping(value = "/businessTrip/depttasklist", produces = {"application/json;charset=UTF-8"}, method = RequestMethod.POST)
     @ResponseBody
     public DataGrid<BusinessTripTask> getDeptTaskList(HttpSession session, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
         DataGrid<BusinessTripTask> grid = new DataGrid<>();
@@ -107,10 +107,10 @@ public class BusinessTripController {
         grid.setCurrent(current);
         // 先做权限检查，对于没有部门领导审批权限的用户,直接返回空
         String userId = (String) session.getAttribute("username");
-        if(AuthorityCheck.isAuthority(userId, "部门领导审批")){
+        if (AuthorityCheck.isAuthority(userId, "部门领导审批")) {
             grid.setRows(businessTripService.getPageTasksByGroup("部门经理", (current - 1) * rowCount, rowCount));
             grid.setTotal(businessTripService.getTotalOfTasksByGroup("部门经理"));
-        }else {
+        } else {
             grid.setTotal(0);
             grid.setRows(new ArrayList<>(0));
         }
@@ -126,8 +126,8 @@ public class BusinessTripController {
         String userId = (String) session.getAttribute("username");
         if (AuthorityCheck.isAuthority(userId, "人事审批")) {
             grid.setTotal(businessTripService.getTotalOfTasksByGroup("人事"));
-            grid.setRows( businessTripService.getPageTasksByGroup("人事", (current - 1) * rowCount, rowCount));
-        }else {
+            grid.setRows(businessTripService.getPageTasksByGroup("人事", (current - 1) * rowCount, rowCount));
+        } else {
             grid.setTotal(0);
             grid.setRows(new ArrayList<BusinessTripTask>(0));
         }
@@ -153,9 +153,33 @@ public class BusinessTripController {
     public String modifyBusinessTripApply() {
         return "activiti/modifyBusinessTripApply";
     }
+
     @RequestMapping(value = "/processBusinessTripFallback", method = RequestMethod.POST)
     @ResponseBody
     public String processFallback() {
         return "activiti/businessTripHRAudit";
+    }
+
+    @RequestMapping(value = "/businessTrip/updatetasklist", produces = {"application/json;charset=UTF-8"}, method = RequestMethod.POST)
+    @ResponseBody
+    public DataGrid<BusinessTripTask> getUpdateTaskList(HttpSession session, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+        String userId = (String) session.getAttribute("username");
+        List<Base> results = businessTripService.getPageUpdateApplyTask(userId, "submitForm","businessTrip", (current - 1) * rowCount, rowCount);
+        List<BusinessTripTask> tasks = new ArrayList<>();
+        results.forEach(e->{ tasks.add(new BusinessTripTask((BusinessTripApply) e));});
+        DataGrid<BusinessTripTask> grid = new DataGrid<>();
+        grid.setRowCount(rowCount);
+        grid.setCurrent(current);
+        grid.setTotal(businessTripService.getAllUpdateApplyTask(userId, "submitForm", "businessTrip"));
+        grid.setRows(tasks);
+        return grid;
+    }
+
+    @RequestMapping(value = "/update/businessTrip/task/{taskid}", method = RequestMethod.POST)
+    @ResponseBody
+    public MSG updateComplete(@PathVariable("taskid") String taskid, @ModelAttribute("businessTripApply") BusinessTripApply businessTripApply,
+                              @RequestParam("reapply") String reapply) {
+        businessTripService.updateComplete(taskid, businessTripApply, reapply);
+        return new MSG("success");
     }
 }

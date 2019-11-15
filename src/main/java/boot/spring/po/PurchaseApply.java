@@ -1,19 +1,20 @@
 package boot.spring.po;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import org.activiti.engine.task.Task;
 
-public class PurchaseApply {
-	int id;
-	String itemlist;
-	BigDecimal total;
+public class PurchaseApply extends Base implements Serializable {
+	private int id;
+	private String itemlist;
+	private BigDecimal total;
 	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
-	Date applytime;
-	String applyer;
-	Task task;
+	private Date applytime;
+	private String applyer;
+
 	public int getId() {
 		return id;
 	}
@@ -26,7 +27,6 @@ public class PurchaseApply {
 	public void setItemlist(String itemlist) {
 		this.itemlist = itemlist;
 	}
-	
 	public BigDecimal getTotal() {
 		return total;
 	}
@@ -45,11 +45,5 @@ public class PurchaseApply {
 	public void setApplyer(String applyer) {
 		this.applyer = applyer;
 	}
-	public Task getTask() {
-		return task;
-	}
-	public void setTask(Task task) {
-		this.task = task;
-	}
-	
+
 }

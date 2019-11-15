@@ -6,30 +6,31 @@ import org.activiti.engine.task.Task;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import sun.net.www.content.audio.basic;
 
 @ApiModel("请假表")
-public class LeaveApply implements Serializable{
+public class LeaveApply extends Base implements Serializable{
 	@ApiModelProperty("主键")
-	int id;
+	private int id;
 	@ApiModelProperty("流程实例id")
-	String process_instance_id;
+	private String process_instance_id;
 	@ApiModelProperty("用户名")
-	String user_id;
+	private String user_id;
 	@ApiModelProperty("请假起始时间")
-	String start_time;
+	private String start_time;
 	@ApiModelProperty("请假结束时间")
-	String end_time;
+	private String end_time;
 	@ApiModelProperty("请假类型")
-	String leave_type;
+	private String leave_type;
 	@ApiModelProperty("请假原因")
-	String reason;
+	private String reason;
 	@ApiModelProperty("申请时间")
-	String apply_time;
+	private String apply_time;
 	@ApiModelProperty("实际请假起始时间")
-	String reality_start_time;
+	private String reality_start_time;
 	@ApiModelProperty("实际请假结束时间")
-	String reality_end_time;
-	Task task;
+	private String reality_end_time;
+
 	public int getId() {
 		return id;
 	}
@@ -90,11 +91,5 @@ public class LeaveApply implements Serializable{
 	public void setReality_end_time(String reality_end_time) {
 		this.reality_end_time = reality_end_time;
 	}
-	public Task getTask() {
-		return task;
-	}
-	public void setTask(Task task) {
-		this.task = task;
-	}
-	
+
 }

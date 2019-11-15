@@ -10,26 +10,25 @@ import java.io.Serializable;
 
 @ApiModel("出差表")
 @JsonIgnoreProperties(value = {"task"})
-public class BusinessTripApply implements Serializable{
+public class BusinessTripApply extends Base implements Serializable{
 	@ApiModelProperty("主键")
-	int id;
+	private int id;
 	@ApiModelProperty("流程实例id")
-	String process_instance_id;
+	private String process_instance_id;
 	@ApiModelProperty("用户名")
-	String user_id;
+	private String user_id;
 	@ApiModelProperty("出差起始时间")
-	String start_time;
+	private String start_time;
 	@ApiModelProperty("出差结束时间")
-	String end_time;
+	private String end_time;
 	@ApiModelProperty("出差原因")
-	String reason;
+	private String reason;
 	@ApiModelProperty("申请时间")
-	String apply_time;
+	private String apply_time;
 	@ApiModelProperty("实际出差起始时间")
-	String reality_start_time;
+	private String reality_start_time;
 	@ApiModelProperty("实际出差结束时间")
-	String reality_end_time;
-	Task task;
+	private String reality_end_time;
 	public int getId() {
 		return id;
 	}
@@ -84,11 +83,5 @@ public class BusinessTripApply implements Serializable{
 	public void setReality_end_time(String reality_end_time) {
 		this.reality_end_time = reality_end_time;
 	}
-	public Task getTask() {
-		return task;
-	}
-	public void setTask(Task task) {
-		this.task = task;
-	}
-	
+
 }
