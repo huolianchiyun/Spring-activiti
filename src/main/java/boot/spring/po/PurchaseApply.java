@@ -3,12 +3,14 @@ package boot.spring.po;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.activiti.engine.task.Task;
 
 public class PurchaseApply {
 	int id;
 	String itemlist;
 	BigDecimal total;
+	@JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
 	Date applytime;
 	String applyer;
 	Task task;

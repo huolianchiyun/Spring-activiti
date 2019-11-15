@@ -1,12 +1,15 @@
 package boot.spring.po;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.activiti.engine.task.Task;
 
 import java.io.Serializable;
 
-@ApiModel("请假表")
+@ApiModel("出差表")
+@JsonIgnoreProperties(value = {"task"})
 public class BusinessTripApply implements Serializable{
 	@ApiModelProperty("主键")
 	int id;

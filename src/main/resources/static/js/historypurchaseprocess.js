@@ -4,7 +4,7 @@
 	    	navigation:2,
   			columnSelection:false,
 		    ajax:true,
-		    url:"getfinishpurchaseprocess",
+		    url:"getfinishprocess?type=purchase",
 		    formatters: {
 		    "applyer":function(column, row){
 		    	return row.purchaseapply.applyer;

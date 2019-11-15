@@ -1,36 +1,20 @@
 package boot.spring.controller;
 
-import boot.spring.pagemodel.Process;
+import boot.spring.authority.AuthorityCheck;
 import boot.spring.pagemodel.*;
 import boot.spring.po.*;
 import boot.spring.service.BusinessTripService;
-import boot.spring.service.LeaveService;
 import boot.spring.service.SystemService;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.*;
-import org.activiti.engine.history.HistoricActivityInstance;
-import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.history.HistoricProcessInstanceQuery;
-import org.activiti.engine.impl.RepositoryServiceImpl;
-import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
-import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
-import org.activiti.engine.task.Task;
-import org.activiti.image.impl.DefaultProcessDiagramGenerator;
-import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,169 +23,139 @@ import java.util.Map;
 @Api(value = "请假流程接口")
 @Controller
 public class BusinessTripController {
-	//JpaProcessEngineAutoConfiguration->AbstractProcessEngineAutoConfiguration
-	@Autowired
-	RepositoryService rep;
-	@Autowired
-	RuntimeService runservice;
-	@Autowired
-	FormService formservice;
-	@Autowired
-	IdentityService identityservice;
-	@Autowired
-	TaskService taskservice;
-	@Autowired
-	HistoryService histiryservice;
-	@Autowired
-	SystemService systemservice;
-	@Autowired
-	BusinessTripService businessTripService;
+    //JpaProcessEngineAutoConfiguration->AbstractProcessEngineAutoConfiguration
+    @Autowired
+    RepositoryService rep;
+    @Autowired
+    RuntimeService runservice;
+    @Autowired
+    FormService formservice;
+    @Autowired
+    IdentityService identityservice;
+    @Autowired
+    TaskService taskservice;
+    @Autowired
+    HistoryService histiryservice;
+    @Autowired
+    SystemService systemservice;
+    @Autowired
+    BusinessTripService businessTripService;
 
 
-	@RequestMapping(value = "/businessTrip", method = RequestMethod.GET)
-	public String businessTrip() {
-		return "activiti/businessTripApply";
-	}
+    @RequestMapping(value = "/businessTrip", method = RequestMethod.GET)
+    public String businessTrip() {
+        return "activiti/businessTripApply";
+    }
 
-	@RequestMapping(value = "/startBusinessTrip", method = RequestMethod.POST)
-	@ResponseBody
-	public MSG start_BusinessTrip(BusinessTripApply apply, HttpSession session) {
-		String userid = (String) session.getAttribute("username");
-		Map<String, Object> variables = new HashMap<String, Object>();
-		variables.put("applyuserid", userid);
-		ProcessInstance ins = businessTripService.startWorkflow(apply, userid, variables);
-		System.out.println("流程id" + ins.getId() + "已启动");
-		return new MSG("sucess");
-	}
+    @RequestMapping(value = "/startBusinessTrip", method = RequestMethod.POST)
+    @ResponseBody
+    public MSG start_BusinessTrip(BusinessTripApply apply, HttpSession session) {
+        String userid = (String) session.getAttribute("username");
+        Map<String, Object> variables = new HashMap<String, Object>();
+        variables.put("applyuserid", userid);
+        ProcessInstance ins = businessTripService.startWorkflow(apply, userid, variables);
+        System.out.println("流程id" + ins.getId() + "已启动");
+        return new MSG("sucess");
+    }
 
+    @RequestMapping(value = "myBusinessTrips", method = RequestMethod.GET)
+    String myBusinessTrips() {
+        return "activiti/myBusinessTrips";
+    }
 
+    @RequestMapping(value = "myBusinessTripsProcess", method = RequestMethod.GET)
+    String myBusinessTripProcess() {
+        return "activiti/myBusinessTripsProcess";
+    }
 
+    @RequestMapping(value = "businessTriptasklist", method = RequestMethod.POST)
+    @ResponseBody
+    public DataGrid<RunningProcess> getBusinessTriptasklist(HttpSession session, @RequestParam("current") int current,
+                                                            @RequestParam("rowCount") int rowCount) {
+        int firstrow = (current - 1) * rowCount;
+        String userid = (String) session.getAttribute("username");
+        ProcessInstanceQuery query = runservice.createProcessInstanceQuery();
+        int total = (int) query.count();
+        List<ProcessInstance> a = query.processDefinitionKey("businessTrip").involvedUser(userid).listPage(firstrow, rowCount);
+        List<RunningProcess> list = new ArrayList<RunningProcess>();
+        for (ProcessInstance p : a) {
+            RunningProcess process = new RunningProcess();
+            process.setActivityid(p.getActivityId());
+            process.setBusinesskey(p.getBusinessKey());
+            process.setExecutionid(p.getId());
+            process.setProcessInstanceid(p.getProcessInstanceId());
+            BusinessTripApply l = businessTripService.getBusinessTripApply(Integer.parseInt(p.getBusinessKey()));
+            if (l.getUser_id().equals(userid))
+                list.add(process);
+            else
+                continue;
+        }
+        DataGrid<RunningProcess> grid = new DataGrid<RunningProcess>();
+        grid.setCurrent(current);
+        grid.setRowCount(rowCount);
+        grid.setTotal(total);
+        grid.setRows(list);
+        return grid;
+    }
 
-	@RequestMapping(value = "/activiti/task-deptleaderaudit", method = RequestMethod.GET)
-	String url() {
-		return "/activiti/task-deptleaderaudit";
-	}
+    @ApiOperation("获取部门领导审批代办列表")
+    @RequestMapping(value = "/businessTrip/depttasklist", produces = {"application/json;charset=UTF-8" }, method = RequestMethod.POST)
+    @ResponseBody
+    public DataGrid<BusinessTripTask> getDeptTaskList(HttpSession session, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+        DataGrid<BusinessTripTask> grid = new DataGrid<>();
+        grid.setRowCount(rowCount);
+        grid.setCurrent(current);
+        // 先做权限检查，对于没有部门领导审批权限的用户,直接返回空
+        String userId = (String) session.getAttribute("username");
+        if(AuthorityCheck.isAuthority(userId, "部门领导审批")){
+            grid.setRows(businessTripService.getPageTasksByGroup("部门经理", (current - 1) * rowCount, rowCount));
+            grid.setTotal(businessTripService.getTotalOfTasksByGroup("部门经理"));
+        }else {
+            grid.setTotal(0);
+            grid.setRows(new ArrayList<>(0));
+        }
+        return grid;
+    }
 
-	@RequestMapping(value = "/task/deptcomplete/{taskid}", method = RequestMethod.POST)
-	@ResponseBody
-	public MSG deptcomplete(HttpSession session, @PathVariable("taskid") String taskid, HttpServletRequest req) {
-		String userid = (String) session.getAttribute("username");
-		Map<String, Object> variables = new HashMap<String, Object>();
-		String approve = req.getParameter("deptleaderapprove");
-		variables.put("deptleaderapprove", approve);
-		taskservice.claim(taskid, userid);
-		taskservice.complete(taskid, variables);
-		return new MSG("success");
-	}
+    @RequestMapping(value = "/businessTrip/hrtasklist", produces = {"application/json;charset=UTF-8"}, method = RequestMethod.POST)
+    @ResponseBody
+    public DataGrid<BusinessTripTask> gethrtasklist(HttpSession session, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+        DataGrid<BusinessTripTask> grid = new DataGrid<>();
+        grid.setRowCount(rowCount);
+        grid.setCurrent(current);
+        String userId = (String) session.getAttribute("username");
+        if (AuthorityCheck.isAuthority(userId, "人事审批")) {
+            grid.setTotal(businessTripService.getTotalOfTasksByGroup("人事"));
+            grid.setRows( businessTripService.getPageTasksByGroup("人事", (current - 1) * rowCount, rowCount));
+        }else {
+            grid.setTotal(0);
+            grid.setRows(new ArrayList<BusinessTripTask>(0));
+        }
+        return grid;
+    }
 
-	@RequestMapping(value = "/task/hrcomplete/{taskid}", method = RequestMethod.POST)
-	@ResponseBody
-	public MSG hrcomplete(HttpSession session, @PathVariable("taskid") String taskid, HttpServletRequest req) {
-		String userid = (String) session.getAttribute("username");
-		Map<String, Object> variables = new HashMap<String, Object>();
-		String approve = req.getParameter("hrapprove");
-		variables.put("hrapprove", approve);
-		taskservice.claim(taskid, userid);
-		taskservice.complete(taskid, variables);
-		return new MSG("success");
-	}
+    @RequestMapping(value = "/businessTripHistoryProcess", method = RequestMethod.GET)
+    public String history() {
+        return "activiti/businessTripHistoryProcess";
+    }
 
+    @RequestMapping(value = "/businessTripDeptLeaderAudit", method = RequestMethod.GET)
+    public String mytask() {
+        return "activiti/businessTripDeptLeaderAudit";
+    }
 
-	@RequestMapping(value = "involvedprocess", method = RequestMethod.POST) // 参与的正在运行的请假流程
-	@ResponseBody
-	public DataGrid<RunningProcess> allexeution(HttpSession session, @RequestParam("current") int current,
-			@RequestParam("rowCount") int rowCount) {
-		int firstrow = (current - 1) * rowCount;
-		String userid = (String) session.getAttribute("username");
-		ProcessInstanceQuery query = runservice.createProcessInstanceQuery();
-		int total = (int) query.count();
-		List<ProcessInstance> a = query.processDefinitionKey("leave").involvedUser(userid).listPage(firstrow, rowCount);
-		List<RunningProcess> list = new ArrayList<RunningProcess>();
-		for (ProcessInstance p : a) {
-			RunningProcess process = new RunningProcess();
-			process.setActivityid(p.getActivityId());
-			process.setBusinesskey(p.getBusinessKey());
-			process.setExecutionid(p.getId());
-			process.setProcessInstanceid(p.getProcessInstanceId());
-			list.add(process);
-		}
-		DataGrid<RunningProcess> grid = new DataGrid<RunningProcess>();
-		grid.setCurrent(current);
-		grid.setRowCount(rowCount);
-		grid.setTotal(total);
-		grid.setRows(list);
-		return grid;
-	}
+    @RequestMapping(value = "/businessTripHRAudit", method = RequestMethod.GET)
+    public String hr() {
+        return "activiti/businessTripHRAudit";
+    }
 
-
-	@RequestMapping(value = "/historyprocess", method = RequestMethod.GET)
-	public String history() {
-		return "activiti/historyprocess";
-	}
-
-	@RequestMapping(value = "/processinfo", method = RequestMethod.POST)
-	@ResponseBody
-	public List<HistoricActivityInstance> processinfo(@RequestParam("instanceid") String instanceid) {
-		List<HistoricActivityInstance> his = histiryservice.createHistoricActivityInstanceQuery()
-				.processInstanceId(instanceid).orderByHistoricActivityInstanceStartTime().asc().list();
-		return his;
-	}
-
-	@RequestMapping(value = "/processhis", method = RequestMethod.POST)
-	@ResponseBody
-	public List<HistoricActivityInstance> processhis(@RequestParam("ywh") String ywh) {
-		String instanceid = histiryservice.createHistoricProcessInstanceQuery().processDefinitionKey("purchase")
-				.processInstanceBusinessKey(ywh).singleResult().getId();
-		List<HistoricActivityInstance> his = histiryservice.createHistoricActivityInstanceQuery()
-				.processInstanceId(instanceid).orderByHistoricActivityInstanceStartTime().asc().list();
-		return his;
-	}
-
-	@RequestMapping(value = "myleaveprocess", method = RequestMethod.GET)
-	String myleaveprocess() {
-		return "activiti/myleaveprocess";
-	}
-
-
-	@RequestMapping(value = "myleaves", method = RequestMethod.GET)
-	String myleaves() {
-		return "activiti/myleaves";
-	}
-
-	@RequestMapping(value = "myBusinessTrips", method = RequestMethod.GET)
-	String myBusinessTrips() {
-		return "activiti/myBusinessTrips";
-	}
-
-
-	@RequestMapping(value = "businessTriptasklist", method = RequestMethod.POST)
-	@ResponseBody
-	public DataGrid<RunningProcess> getBusinessTriptasklist(HttpSession session, @RequestParam("current") int current,
-			@RequestParam("rowCount") int rowCount) {
-		int firstrow = (current - 1) * rowCount;
-		String userid = (String) session.getAttribute("username");
-		ProcessInstanceQuery query = runservice.createProcessInstanceQuery();
-		int total = (int) query.count();
-		List<ProcessInstance> a = query.processDefinitionKey("businessTrip").involvedUser(userid).listPage(firstrow, rowCount);
-		List<RunningProcess> list = new ArrayList<RunningProcess>();
-		for (ProcessInstance p : a) {
-			RunningProcess process = new RunningProcess();
-			process.setActivityid(p.getActivityId());
-			process.setBusinesskey(p.getBusinessKey());
-			process.setExecutionid(p.getId());
-			process.setProcessInstanceid(p.getProcessInstanceId());
-			BusinessTripApply l = businessTripService.getBusinessTripApply(Integer.parseInt(p.getBusinessKey()));
-			if (l.getUser_id().equals(userid))
-				list.add(process);
-			else
-				continue;
-		}
-		DataGrid<RunningProcess> grid = new DataGrid<RunningProcess>();
-		grid.setCurrent(current);
-		grid.setRowCount(rowCount);
-		grid.setTotal(total);
-		grid.setRows(list);
-		return grid;
-	}
-
+    @RequestMapping(value = "/modifyBusinessTripApply", method = RequestMethod.GET)
+    public String modifyBusinessTripApply() {
+        return "activiti/modifyBusinessTripApply";
+    }
+    @RequestMapping(value = "/processBusinessTripFallback", method = RequestMethod.POST)
+    @ResponseBody
+    public String processFallback() {
+        return "activiti/businessTripHRAudit";
+    }
 }

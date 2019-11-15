@@ -4,12 +4,13 @@ $(document).ready(function () {
         navigation: 2,
         columnSelection: false,
         ajax: true,
-        url: "businessTriptasklist",
+        url: "allRunningProcessesRelatedToMe?type='businessTrip'",
         formatters: {
             "commands": function (column, row) {
                 return "<a class=\"btn btn-xs btn-default ajax-link\" target=\"_blank\" href=\"traceprocess/" + row.processInstanceid + "\">查看详情</a>";
             }
         }
+
     }).on("loaded.rs.jquery.bootgrid", function () {
     });
 });

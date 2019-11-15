@@ -4,7 +4,7 @@
 	    	navigation:2,
   			columnSelection:false,
 		    ajax:true,
-		    url:"hrtasklist",
+		    url:"/leave/hrtasklist",
 		    formatters: {
 		    "taskcreatetime":function(column, row){
 		    	return getLocalTime(row.taskcreatetime);
@@ -20,7 +20,7 @@
 	    	    grid.find(".command-run1").on("click", function(e)
 	    	    {
 	    	    	var taskid=$(this).data("row-id");
-	    	    	$.post("dealtask",{"taskid":taskid},function(data){
+	    	    	$.post("dealtask",{"taskid":taskid, "type": "leave"},function(data){
 	    	    		var obj = data;
 	    	    		$("#reason").val(obj.reason);
 	    	    		$("#type").val(obj.leave_type);

@@ -1,25 +1,23 @@
 package boot.spring.controller;
 
+import boot.spring.common.SpringIOCUtil;
 import boot.spring.pagemodel.Process;
 import boot.spring.pagemodel.*;
-import boot.spring.po.*;
 import boot.spring.service.BusinessTripService;
-import boot.spring.service.LeaveService;
+import boot.spring.service.ProcessCommon;
 import boot.spring.service.SystemService;
+import boot.spring.service.impl.BusinessTripServiceImpl;
+import boot.spring.service.impl.LeaveServiceImpl;
+import boot.spring.service.impl.PurchaseServiceImpl;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricProcessInstanceQuery;
-import org.activiti.engine.impl.RepositoryServiceImpl;
-import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
-import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -39,6 +37,12 @@ import java.util.Map;
 @Api(value = "请假流程接口")
 @Controller
 public class ProcessCommonController {
+	private final static Map<String,Class> servicesMap = new HashMap(){{
+		put("leave", LeaveServiceImpl.class);
+		put("purchase", PurchaseServiceImpl.class);
+		put("businessTrip", BusinessTripServiceImpl.class);
+	}};
+
 	//JpaProcessEngineAutoConfiguration->AbstractProcessEngineAutoConfiguration
 	@Autowired
 	RepositoryService rep;
@@ -120,29 +124,9 @@ public class ProcessCommonController {
 		return "activiti/runningprocess";
 	}
 
-	@RequestMapping(value = "/deptleaderaudit", method = RequestMethod.GET)
-	public String mytask() {
-		return "activiti/deptleaderaudit";
-	}
-
-	@RequestMapping(value = "/hraudit", method = RequestMethod.GET)
-	public String hr() {
-		return "activiti/hraudit";
-	}
-
 	@RequestMapping(value = "/index", method = RequestMethod.GET)
 	public String my() {
 		return "index";
-	}
-
-	@RequestMapping(value = "/reportback", method = RequestMethod.GET)
-	public String reprotback() {
-		return "activiti/reportback";
-	}
-
-	@RequestMapping(value = "/modifyapply", method = RequestMethod.GET)
-	public String modifyapply() {
-		return "activiti/modifyapply";
 	}
 
 	@RequestMapping(value = "/activiti/task-deptleaderaudit", method = RequestMethod.GET)
@@ -174,36 +158,6 @@ public class ProcessCommonController {
 		return new MSG("success");
 	}
 
-	@RequestMapping(value = "involvedprocess", method = RequestMethod.POST) // 参与的正在运行的请假流程
-	@ResponseBody
-	public DataGrid<RunningProcess> allexeution(HttpSession session, @RequestParam("current") int current,
-			@RequestParam("rowCount") int rowCount) {
-		int firstrow = (current - 1) * rowCount;
-		String userid = (String) session.getAttribute("username");
-		ProcessInstanceQuery query = runservice.createProcessInstanceQuery();
-		int total = (int) query.count();
-		List<ProcessInstance> a = query.processDefinitionKey("leave").involvedUser(userid).listPage(firstrow, rowCount);
-		List<RunningProcess> list = new ArrayList<RunningProcess>();
-		for (ProcessInstance p : a) {
-			RunningProcess process = new RunningProcess();
-			process.setActivityid(p.getActivityId());
-			process.setBusinesskey(p.getBusinessKey());
-			process.setExecutionid(p.getId());
-			process.setProcessInstanceid(p.getProcessInstanceId());
-			list.add(process);
-		}
-		DataGrid<RunningProcess> grid = new DataGrid<RunningProcess>();
-		grid.setCurrent(current);
-		grid.setRowCount(rowCount);
-		grid.setTotal(total);
-		grid.setRows(list);
-		return grid;
-	}
-
-	@RequestMapping(value = "/historyprocess", method = RequestMethod.GET)
-	public String history() {
-		return "activiti/historyprocess";
-	}
 
 	@RequestMapping(value = "/processinfo", method = RequestMethod.POST)
 	@ResponseBody
@@ -222,4 +176,73 @@ public class ProcessCommonController {
 				.processInstanceId(instanceid).orderByHistoricActivityInstanceStartTime().asc().list();
 		return his;
 	}
+
+	@RequestMapping(value = "allRunningProcessesRelatedToMe", method = RequestMethod.POST) // 参与的正在运行的流程
+	@ResponseBody
+	public DataGrid<RunningProcess> getAllRunningProcessesRelatedToMe(HttpSession session, @RequestParam("type") String type,
+				 @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+		int firstrow = (current - 1) * rowCount;
+		String userid = (String) session.getAttribute("username");
+		ProcessInstanceQuery query = runservice.createProcessInstanceQuery();
+		int total = (int) query.count();
+		List<ProcessInstance> a = query.processDefinitionKey(type).involvedUser(userid).listPage(firstrow, rowCount);
+		List<RunningProcess> list = new ArrayList<RunningProcess>();
+		for (ProcessInstance p : a) {
+			RunningProcess process = new RunningProcess();
+			process.setActivityid(p.getActivityId());
+			process.setBusinesskey(p.getBusinessKey());
+			process.setExecutionid(p.getId());
+			process.setProcessInstanceid(p.getProcessInstanceId());
+			list.add(process);
+		}
+		DataGrid<RunningProcess> grid = new DataGrid<RunningProcess>();
+		grid.setCurrent(current);
+		grid.setRowCount(rowCount);
+		grid.setTotal(total);
+		grid.setRows(list);
+		return grid;
+	}
+
+	@RequestMapping(value = "/getfinishprocess", method = RequestMethod.POST)
+	@ResponseBody
+	public DataGrid<HistoryProcess> getHistory(HttpSession session, @RequestParam("type")String type, @RequestParam("current") int current, @RequestParam("rowCount") int rowCount) {
+		String userid = (String) session.getAttribute("username");
+		HistoricProcessInstanceQuery process = histiryservice.createHistoricProcessInstanceQuery()
+				.processDefinitionKey(type).startedBy(userid).finished();
+		int total = (int) process.count();
+		int firstrow = (current - 1) * rowCount;
+		List<HistoricProcessInstance> info = process.listPage(firstrow, rowCount);
+		List<HistoryProcess> list = new ArrayList<HistoryProcess>();
+		dealHistoryProcessByType(info, list, type);
+		DataGrid<HistoryProcess> grid = new DataGrid<HistoryProcess>();
+		grid.setCurrent(current);
+		grid.setRowCount(rowCount);
+		grid.setTotal(total);
+		grid.setRows(list);
+		return grid;
+	}
+
+	@RequestMapping(value = "/dealtask", method = RequestMethod.POST)
+	@ResponseBody
+	public Object taskdeal(@RequestParam("taskid") String taskid, @RequestParam("type") String type, HttpServletResponse response) {
+		Task task = taskservice.createTaskQuery().taskId(taskid).singleResult();
+		ProcessInstance process = runservice.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
+		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(servicesMap.get(type));
+		return processCommon.getSelfById(new Integer(process.getBusinessKey()));
+	}
+
+	private void dealHistoryProcessByType(List<HistoricProcessInstance> info, List<HistoryProcess> list, String type) {
+		ProcessCommon processCommon = (ProcessCommon) SpringIOCUtil.getBean(servicesMap.get(type));
+		for (HistoricProcessInstance history : info) {
+			HistoryProcess his = new HistoryProcess();
+			String bussinesskey = history.getBusinessKey();
+			his.setBusinessKey(bussinesskey);
+			his.setProcessDefinitionId(history.getProcessDefinitionId());
+			Object apply = processCommon.getSelfById(Integer.parseInt(bussinesskey));
+			his.setData(apply);
+			list.add(his);
+		}
+	}
+
+
 }

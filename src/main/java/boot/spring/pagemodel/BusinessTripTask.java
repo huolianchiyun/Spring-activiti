@@ -1,30 +1,30 @@
 package boot.spring.pagemodel;
 
-import java.util.Date;
-
+import boot.spring.po.BusinessTripApply;
 import boot.spring.po.LeaveApply;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-@ApiModel("请假任务信息")
-public class LeaveTask {
-    public LeaveTask() {
+import java.util.Date;
+
+@ApiModel("出差任务信息")
+public class BusinessTripTask {
+    public BusinessTripTask() {
     }
 
-    public LeaveTask(LeaveApply leaveApply) {
-        id = leaveApply.getId();
-        apply_time = leaveApply.getApply_time();
-        user_id = leaveApply.getUser_id();
-        end_time = leaveApply.getEnd_time();
-        leave_type = leaveApply.getLeave_type();
-        process_instance_id = leaveApply.getProcess_instance_id();
-        processdefid = leaveApply.getTask().getProcessDefinitionId();
-        reason = leaveApply.getReason();
-        start_time = leaveApply.getStart_time();
-        taskcreatetime = leaveApply.getTask().getCreateTime();
-        taskid = leaveApply.getTask().getId();
-        taskname = leaveApply.getTask().getName();
+    public BusinessTripTask(BusinessTripApply businessTripApply) {
+        id = businessTripApply.getId();
+        apply_time = businessTripApply.getApply_time();
+        user_id = businessTripApply.getUser_id();
+        end_time = businessTripApply.getEnd_time();
+        process_instance_id = businessTripApply.getProcess_instance_id();
+        processdefid = businessTripApply.getTask().getProcessDefinitionId();
+        reason = businessTripApply.getReason();
+        start_time = businessTripApply.getStart_time();
+        taskcreatetime = businessTripApply.getTask().getCreateTime();
+        taskid = businessTripApply.getTask().getId();
+        taskname = businessTripApply.getTask().getName();
     }
 
     @ApiModelProperty("主键")
@@ -33,19 +33,17 @@ public class LeaveTask {
     String process_instance_id;
     @ApiModelProperty("用户名")
     String user_id;
-    @ApiModelProperty("请假起始时间")
+    @ApiModelProperty("出差起始时间")
     String start_time;
-    @ApiModelProperty("请假结束时间")
+    @ApiModelProperty("出差结束时间")
     String end_time;
-    @ApiModelProperty("请假类型")
-    String leave_type;
-    @ApiModelProperty("请假原因")
+    @ApiModelProperty("出差原因")
     String reason;
     @ApiModelProperty("申请时间")
     String apply_time;
-    @ApiModelProperty("实际请假起始时间")
+    @ApiModelProperty("实际出差起始时间")
     String reality_start_time;
-    @ApiModelProperty("实际请假结束时间")
+    @ApiModelProperty("实际出差结束时间")
     String reality_end_time;
     @ApiModelProperty("任务id")
     String taskid;
@@ -56,7 +54,7 @@ public class LeaveTask {
     @ApiModelProperty("流程定义id")
     String processdefid;
     @ApiModelProperty("任务创建时间")
-    @JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
+//    @JsonFormat(locale="zh", timezone="GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     Date taskcreatetime;
 
     public int getId() {
@@ -97,14 +95,6 @@ public class LeaveTask {
 
     public void setEnd_time(String end_time) {
         this.end_time = end_time;
-    }
-
-    public String getLeave_type() {
-        return leave_type;
-    }
-
-    public void setLeave_type(String leave_type) {
-        this.leave_type = leave_type;
     }
 
     public String getReason() {
@@ -178,6 +168,5 @@ public class LeaveTask {
     public void setTaskcreatetime(Date taskcreatetime) {
         this.taskcreatetime = taskcreatetime;
     }
-
 
 }

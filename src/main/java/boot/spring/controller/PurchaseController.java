@@ -20,6 +20,7 @@ import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -279,32 +280,6 @@ public class PurchaseController {
 		taskservice.claim(taskid, userid);
 		taskservice.complete(taskid, variables);
 		return new MSG("ok");
-	}
-	
-	@RequestMapping(value="getfinishpurchaseprocess",method=RequestMethod.POST)
-	@ResponseBody
-	public DataGrid<HistoryProcess> getHistory(HttpSession session,@RequestParam("current") int current,@RequestParam("rowCount") int rowCount){
-		String userid=(String) session.getAttribute("username");
-		HistoricProcessInstanceQuery process = histiryservice.createHistoricProcessInstanceQuery().processDefinitionKey("purchase").startedBy(userid).finished();
-		int total= (int) process.count();
-		int firstrow=(current-1)*rowCount;
-		List<HistoricProcessInstance> info = process.listPage(firstrow, rowCount);
-		List<HistoryProcess> list=new ArrayList<HistoryProcess>();
-		for(HistoricProcessInstance history:info){
-			HistoryProcess his=new HistoryProcess();
-			String bussinesskey=history.getBusinessKey();
-			PurchaseApply apply=purchaseservice.getPurchase(Integer.parseInt(bussinesskey));
-			his.setPurchaseapply(apply);
-			his.setBusinessKey(bussinesskey);
-			his.setProcessDefinitionId(history.getProcessDefinitionId());
-			list.add(his);
-		}
-		DataGrid<HistoryProcess> grid=new DataGrid<HistoryProcess>();
-		grid.setCurrent(current);
-		grid.setRowCount(rowCount);
-		grid.setTotal(total);
-		grid.setRows(list);
-		return grid;
 	}
 	
 	@RequestMapping(value="/financetasklist",method=RequestMethod.POST)
